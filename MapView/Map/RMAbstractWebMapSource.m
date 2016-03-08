@@ -62,7 +62,7 @@ static RMTile TileFromKey(NSString *key) {
     self.requestTimeoutSeconds = RMAbstractWebMapSourceDefaultWaitSeconds;
     
     NSURLSessionConfiguration *config = [NSURLSessionConfiguration defaultSessionConfiguration];
-    config.HTTPShouldUsePipelining = YES;
+//    config.HTTPShouldUsePipelining = YES;
     config.HTTPMaximumConnectionsPerHost = 16;
     
     _URLSession = [NSURLSession sessionWithConfiguration:config];

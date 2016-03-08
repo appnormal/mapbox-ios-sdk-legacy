@@ -63,6 +63,7 @@ static RMTile TileFromKey(NSString *key) {
     
     NSURLSessionConfiguration *config = [NSURLSessionConfiguration defaultSessionConfiguration];
     config.HTTPShouldUsePipelining = YES;
+    config.HTTPMaximumConnectionsPerHost = 16;
     
     _URLSession = [NSURLSession sessionWithConfiguration:config];
     _initiatedTasks = [[NSMapTable alloc] initWithKeyOptions:NSPointerFunctionsCopyIn valueOptions:NSPointerFunctionsWeakMemory capacity:64];

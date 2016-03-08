@@ -123,6 +123,8 @@ static RMTile TileFromKey(NSString *key) {
 
 - (void)downloadImageForTile:(RMTile)tile cache:(RMTileCache *)cache visibleMapRect:(RMIntegralRect)mapRect completion:(void (^)(void))completion
 {
+    tile = [[self mercatorToTileProjection] normaliseTile:tile];
+    
     if ([self operationExistsForTile:tile]) {
         return;
     }
@@ -169,6 +171,8 @@ static RMTile TileFromKey(NSString *key) {
 
 - (UIImage *)imageForTile:(RMTile)tile inCache:(RMTileCache *)tileCache
 {
+    tile = [[self mercatorToTileProjection] normaliseTile:tile];
+    
     // This method only considers the cache. Use downloadImageForTile: to download a
     // tile nonexistant in the cache.
     return [tileCache cachedImage:tile withCacheKey:[self uniqueTilecacheKey]];

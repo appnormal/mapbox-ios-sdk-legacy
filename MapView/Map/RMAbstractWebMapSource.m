@@ -134,7 +134,6 @@ static RMTile TileFromKey(NSString *key) {
     });
     
     NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[self URLForTile:tile]];
-    request.cachePolicy = NSURLRequestReloadIgnoringLocalCacheData;
     request.timeoutInterval = [self requestTimeoutSeconds];
     [request setValue:[[RMConfiguration sharedInstance] userAgent] forHTTPHeaderField:@"User-Agent"];
     
@@ -145,12 +144,10 @@ static RMTile TileFromKey(NSString *key) {
             
             dispatch_async(dispatch_get_main_queue(), ^{
                [[NSNotificationCenter defaultCenter] postNotificationName:RMTileRetrieved object:[NSNumber numberWithUnsignedLongLong:RMTileKey(tile)]];
-            });
-        }
-        
-        if (completion) {
-            dispatch_async(dispatch_get_main_queue(), ^{
-                completion();
+                
+                if (completion) {
+                    completion();
+                }
             });
         }
     }];

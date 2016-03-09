@@ -29,10 +29,19 @@
 
 #import "RMTileCache.h"
 #import "RMConfiguration.h"
+#import "RMMapView.h"
 
 #import "RMTileCacheDownloadOperation.h"
 
 #define HTTP_404_NOT_FOUND 404
+
+static inline BOOL IsEmptyTileData(NSData *data) {
+    if ([data length] == 1784) { // 256x256 tile with all transparent pixels
+        return YES;
+    }
+    
+    return NO;
+}
 
 static NSString * KeyForTile(RMTile tile) {
     return [NSString stringWithFormat:@"%hd|%u|%u", tile.zoom, tile.x, tile.y];
@@ -140,7 +149,7 @@ static RMTile TileFromKey(NSString *key) {
 
     NSURLSessionDataTask *task = [_URLSession dataTaskWithRequest:request completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
         NSInteger statusCode = [(NSHTTPURLResponse *)response statusCode];
-        if (statusCode == 200 && error == nil) {
+        if (statusCode == 200 && error == nil && !IsEmptyTileData(data)) {
             UIImage *img = [UIImage imageWithData:data];
             [cache addImage:img forTile:tile withCacheKey:[self uniqueTilecacheKey]];
             

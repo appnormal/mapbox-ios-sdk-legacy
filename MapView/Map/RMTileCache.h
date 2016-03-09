@@ -78,24 +78,30 @@ typedef enum : short {
 @optional
 
 /** Sent when the background caching operation begins.
-*   @param tileCache The tile cache. 
-*   @param tileCount The total number of tiles required for coverage of the desired geographic area. 
-*   @param tileSource The tile source providing the tiles. */
-- (void)tileCache:(RMTileCache *)tileCache didBeginBackgroundCacheWithCount:(int)tileCount forTileSource:(id <RMTileSource>)tileSource;
+ *   @param tileCache The tile cache.
+ *   @param tileCount The total number of tiles required for coverage of the desired geographic area.
+ *   @param tileSource The tile source providing the tiles. */
+- (void)tileCache:(RMTileCache *)tileCache didBeginBackgroundCacheWithCount:(NSUInteger)tileCount forTileSource:(id <RMTileSource>)tileSource;
 
 /** Sent upon caching of each tile in a background cache operation.
-*   @param tileCache The tile cache. 
-*   @param tile A structure representing the tile in question. 
-*   @param tileIndex The index of the tile in question, beginning with `1` and ending with totalTileCount. 
-*   @param totalTileCount The total number of of tiles required for coverage of the desired geographic area. */
-- (void)tileCache:(RMTileCache *)tileCache didBackgroundCacheTile:(RMTile)tile withIndex:(int)tileIndex ofTotalTileCount:(int)totalTileCount;
+ *   @param tileCache The tile cache.
+ *   @param tile A structure representing the tile in question.
+ *   @param tileIndex The index of the tile in question, beginning with `1` and ending with totalTileCount.
+ *   @param totalTileCount The total number of of tiles required for coverage of the desired geographic area. */
+- (void)tileCache:(RMTileCache *)tileCache didBackgroundCacheTile:(RMTile)tile withIndex:(NSUInteger)tileIndex ofTotalTileCount:(NSUInteger)totalTileCount;
 
-/** Sent when all tiles have completed downloading and caching. 
-*   @param tileCache The tile cache. */
+/** Sent upon error when trying to cache a tile in a background cache operation.
+ *   @param tileCache The tile cache.
+ *   @param error The error received.
+ *   @param tile A structure representing the tile in question. */
+- (void)tileCache:(RMTileCache *)tileCache didReceiveError:(NSError *)error whenCachingTile:(RMTile)tile;
+
+/** Sent when all tiles have completed downloading and caching.
+ *   @param tileCache The tile cache. */
 - (void)tileCacheDidFinishBackgroundCache:(RMTileCache *)tileCache;
 
-/** Sent when the cache download operation has completed cancellation and the cache object is safe to dispose of. 
-*   @param tileCache The tile cache. */
+/** Sent when the cache download operation has completed cancellation and the cache object is safe to dispose of.
+ *   @param tileCache The tile cache. */
 - (void)tileCacheDidCancelBackgroundCache:(RMTileCache *)tileCache;
 
 @end
@@ -156,7 +162,7 @@ typedef enum : short {
 *   @param northEast The northeast corner of the geographic area to cache. 
 *   @param minZoom The minimum zoom level to cache. 
 *   @param maxZoom The maximum zoom level to cache. */
-- (void)beginBackgroundCacheForTileSource:(id <RMTileSource>)tileSource southWest:(CLLocationCoordinate2D)southWest northEast:(CLLocationCoordinate2D)northEast minZoom:(float)minZoom maxZoom:(float)maxZoom;
+- (void)beginBackgroundCacheForTileSource:(id <RMTileSource>)tileSource southWest:(CLLocationCoordinate2D)southWest northEast:(CLLocationCoordinate2D)northEast minZoom:(NSUInteger)minZoom maxZoom:(NSUInteger)maxZoom;
 
 /** Cancel any background caching. 
 *

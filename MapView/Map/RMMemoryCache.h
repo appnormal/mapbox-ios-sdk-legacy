@@ -46,7 +46,4 @@
 
 /** @name Making Space in the Cache */
 
-/** Remove the least-recently used image from the cache if the cache is at or over capacity. This removes a single image from the cache. */
-- (void)makeSpaceInCache;
-
 @end

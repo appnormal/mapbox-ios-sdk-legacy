@@ -33,6 +33,9 @@
 
 @interface RMTileCacheDownloadOperation : NSOperation
 
-- (id)initWithTile:(RMTile)tile forTileSource:(id <RMTileSource>)source usingCache:(RMTileCache *)cache;
+- (instancetype)initWithTile:(RMTile)tile forTileSource:(id <RMTileSource>)source usingCache:(RMTileCache *)cache;
+- (instancetype)initWithTile:(RMTile)tile forTileSource:(id <RMTileSource>)source usingCache:(RMTileCache *)cache completion:(void(^)(NSError *))completion;
+
+@property (nonatomic, assign, readonly) RMTile tile;
 
 @end

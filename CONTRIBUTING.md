@@ -1,10 +1,6 @@
 CONTRIBUTING
 ------------
 
-If you have a usage question, please email support-at-mapbox.com. 
+**Please note that this legacy tree of the Mapbox iOS SDK is deprecated. As such, this project is not under active development. The `2.0.0` and above tree, based on code located at https://github.com/mapbox/mapbox-gl-native/, is a complete rewrite based on OpenGL ES and vector map rendering.**
 
-If you want to contribute code: 
-
-1. If it's generally useful to mapping libraries, consider contributing to the upstream project [Alpstein/route-me](http://github.com/alpstein/route-me), from which this project is derived. We regularly contribute the generally useful parts of our SDK to this project. 
-
-1. If it's Mapbox-specific, fork and submit a pull request so that we can review, discuss, and possibly integrate your code. 
+If you have a usage question, please email help-at-mapbox.com. 

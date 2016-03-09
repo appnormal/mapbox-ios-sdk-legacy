@@ -26,42 +26,154 @@
 // POSSIBILITY OF SUCH DAMAGE.
 
 #import "RMTileCacheDownloadOperation.h"
+#import "RMAbstractWebMapSource.h"
+#import "RMConfiguration.h"
 
-@implementation RMTileCacheDownloadOperation
-{
-    RMTile _tile;
-    id <RMTileSource>_source;
-    RMTileCache *_cache;
+@interface RMTileCacheDownloadOperation ()
+
+@property (readwrite, getter=isExecuting) BOOL executing;
+@property (readwrite, getter=isFinished) BOOL finished;
+@property (readwrite, getter=isCancelled) BOOL cancelled;
+
+@end
+
+@implementation RMTileCacheDownloadOperation {
+    __weak id <RMTileSource>_source;
+    __weak RMTileCache *_cache;
+    void(^_completion)(NSError *);
+    __weak NSURLSessionDataTask *_task;
+    NSURLSession *_session;
+    NSURLRequest *_request;
+    NSUInteger _attempt;
 }
 
-- (id)initWithTile:(RMTile)tile forTileSource:(id <RMTileSource>)source usingCache:(RMTileCache *)cache
+@synthesize executing = _executing, finished = _finished, cancelled = _cancelled;
+
++ (NSSet *)keyPathsForValuesAffectingValueForKey:(NSString *)key
 {
-    if (!(self = [super init]))
-        return nil;
+    NSSet *keyPaths = [super keyPathsForValuesAffectingValueForKey:key];
+    
+    if ([key isEqualToString:@"isExecuting"]) {
+        keyPaths = [keyPaths setByAddingObject:@"executing"];
+    } else if ([key isEqualToString:@"isFinished"]) {
+        keyPaths = [keyPaths setByAddingObject:@"finished"];
+    } else if ([key isEqualToString:@"isCancelled"]) {
+        keyPaths = [keyPaths setByAddingObject:@"cancelled"];
+    }
+    
+    return keyPaths;
+}
 
-    _tile   = tile;
-    _source = source;
-    _cache  = cache;
+- (instancetype)initWithTile:(RMTile)tile
+               forTileSource:(id <RMTileSource>)source
+                  usingCache:(RMTileCache *)cache
+{
+    return [self initWithTile:tile
+                forTileSource:source
+                   usingCache:cache
+                   completion:nil];
+}
 
+- (instancetype)initWithTile:(RMTile)tile
+               forTileSource:(id<RMTileSource>)source
+                  usingCache:(RMTileCache *)cache
+                  completion:(void (^)(NSError *))completion
+{
+    NSAssert([source isKindOfClass:[RMAbstractWebMapSource class]], @"only web-based tile sources are supported for downloading");
+    
+    if (self = [super init]) {
+        _tile = tile;
+        _source = source;
+        _cache = cache;
+        _completion = [completion copy];
+        
+        _session = [NSURLSession sessionWithConfiguration:[NSURLSessionConfiguration defaultSessionConfiguration]];
+        _request = [self createURLRequestForURL:[(RMAbstractWebMapSource *)_source URLForTile:_tile]];
+    }
     return self;
 }
 
-- (void)main
+- (BOOL)isAsynchronous
 {
-    if ( ! _source || ! _cache)
-        [self cancel];
+    return YES;
+}
 
-    if ([self isCancelled])
+- (void)start
+{
+    if (!_source || !_cache || [self isCancelled]) {
+        self.finished = YES;
         return;
-
-    if ( ! [_cache cachedImage:_tile withCacheKey:[_source uniqueTilecacheKey]])
-    {
-        if ([self isCancelled])
-            return;
-
-        if ( ! [_source imageForTile:_tile inCache:_cache])
-            [self cancel];
     }
+    
+    _attempt = 0;
+    _task = [self createDataTaskForRequest:_request];
+    [_task resume];
+    
+    self.executing = YES;
+}
+
+- (void)cancel
+{
+    if ([self isCancelled]) {
+        return;
+    }
+    
+    [_task cancel];
+    self.cancelled = YES;
+}
+
+- (void)completeOperation
+{
+    self.executing = NO;
+    self.finished = YES;
+}
+
+- (NSURLRequest *)createURLRequestForURL:(NSURL *)URL
+{
+    NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:URL];
+    request.cachePolicy = NSURLRequestReloadIgnoringLocalCacheData;
+    request.timeoutInterval = [(RMAbstractWebMapSource *)_source requestTimeoutSeconds];
+    [request setValue:[[RMConfiguration configuration] userAgent] forHTTPHeaderField:@"User-Agent"];
+    return request;
+}
+
+- (NSURLSessionDataTask *)createDataTaskForRequest:(NSURLRequest *)request
+{
+    NSUInteger retryCount = [(RMAbstractWebMapSource *)_source retryCount];
+    NSURLSessionDataTask *task = [_session dataTaskWithRequest:request completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
+        if (error.code == NSURLErrorCancelled) {
+            [self completeOperation];
+        } else {
+            NSError *outError = nil;
+            NSInteger statusCode = [(NSHTTPURLResponse *)response statusCode];
+            
+            if (statusCode != 200) {
+                outError = [NSError errorWithDomain:@"com.mapbox.error.http" code:statusCode userInfo:nil];
+            } else if (error) {
+                outError = error;
+            } else if (!data) {
+                outError = [NSError errorWithDomain:NSURLErrorDomain code:NSURLErrorUnknown userInfo:nil];
+            }
+            
+            if (outError && _attempt < retryCount) {
+                _attempt++;
+                _task = [self createDataTaskForRequest:request];
+                [_task resume];
+            } else {
+                if (!outError) {
+                    [_cache addImage:[UIImage imageWithData:data] forTile:_tile withCacheKey:[_source uniqueTilecacheKey]];
+                }
+                
+                if (_completion) {
+                    dispatch_async(dispatch_get_main_queue(), ^{
+                        _completion(outError);
+                    });
+                }
+                [self completeOperation];
+            }
+        }
+    }];
+    return task;
 }
 
 @end

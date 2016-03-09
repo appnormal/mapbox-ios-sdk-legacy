@@ -35,6 +35,7 @@
 #import "RMTileSource.h"
 
 #import "RMTileCacheDownloadOperation.h"
+#import "RMAbstractWebMapSource.h"
 
 @interface RMTileCache (Configuration)
 
@@ -252,95 +253,140 @@
     return (_activeTileSource || _backgroundFetchQueue);
 }
 
-- (void)beginBackgroundCacheForTileSource:(id <RMTileSource>)tileSource southWest:(CLLocationCoordinate2D)southWest northEast:(CLLocationCoordinate2D)northEast minZoom:(float)minZoom maxZoom:(float)maxZoom
+- (BOOL)markCachingComplete
 {
-    if (self.isBackgroundCaching)
-        return;
-
-    _activeTileSource = tileSource;
+    BOOL incomplete = (_activeTileSource || _backgroundFetchQueue);
     
-    _backgroundFetchQueue = [[NSOperationQueue alloc] init];
-    [_backgroundFetchQueue setMaxConcurrentOperationCount:6];
+    _activeTileSource = nil;
+    _backgroundFetchQueue = nil;
     
-    int   minCacheZoom = (int)minZoom;
-    int   maxCacheZoom = (int)maxZoom;
-    float minCacheLat  = southWest.latitude;
-    float maxCacheLat  = northEast.latitude;
-    float minCacheLon  = southWest.longitude;
-    float maxCacheLon  = northEast.longitude;
+    return incomplete;
+}
 
+- (NSUInteger)tileCountForSouthWest:(CLLocationCoordinate2D)southWest northEast:(CLLocationCoordinate2D)northEast minZoom:(NSUInteger)minZoom maxZoom:(NSUInteger)maxZoom
+{
+    NSUInteger minCacheZoom = minZoom;
+    NSUInteger maxCacheZoom = maxZoom;
+    
+    CLLocationDegrees minCacheLat = southWest.latitude;
+    CLLocationDegrees maxCacheLat = northEast.latitude;
+    CLLocationDegrees minCacheLon = southWest.longitude;
+    CLLocationDegrees maxCacheLon = northEast.longitude;
+    
     NSAssert(minCacheZoom <= maxCacheZoom, @"Minimum zoom should be less than or equal to maximum zoom");
     NSAssert(maxCacheLat  >  minCacheLat,  @"Northernmost bounds should exceed southernmost bounds");
     NSAssert(maxCacheLon  >  minCacheLon,  @"Easternmost bounds should exceed westernmost bounds");
-
-    int n, xMin, yMax, xMax, yMin;
-
-    int totalTiles = 0;
-
-    for (int zoom = minCacheZoom; zoom <= maxCacheZoom; zoom++)
+    
+    NSUInteger n, xMin, yMax, xMax, yMin;
+    
+    NSUInteger totalTiles = 0;
+    
+    for (NSUInteger zoom = minCacheZoom; zoom <= maxCacheZoom; zoom++)
     {
         n = pow(2.0, zoom);
         xMin = floor(((minCacheLon + 180.0) / 360.0) * n);
         yMax = floor((1.0 - (logf(tanf(minCacheLat * M_PI / 180.0) + 1.0 / cosf(minCacheLat * M_PI / 180.0)) / M_PI)) / 2.0 * n);
         xMax = floor(((maxCacheLon + 180.0) / 360.0) * n);
         yMin = floor((1.0 - (logf(tanf(maxCacheLat * M_PI / 180.0) + 1.0 / cosf(maxCacheLat * M_PI / 180.0)) / M_PI)) / 2.0 * n);
-
+        
         totalTiles += (xMax + 1 - xMin) * (yMax + 1 - yMin);
     }
+    
+    return totalTiles;
+}
 
+- (void)beginBackgroundCacheForTileSource:(id <RMTileSource>)tileSource southWest:(CLLocationCoordinate2D)southWest northEast:(CLLocationCoordinate2D)northEast minZoom:(NSUInteger)minZoom maxZoom:(NSUInteger)maxZoom
+{
+    if (self.isBackgroundCaching)
+        return;
+    
+    NSAssert([tileSource isKindOfClass:[RMAbstractWebMapSource class]], @"only web-based tile sources are supported for downloading");
+    
+    _activeTileSource = tileSource;
+    
+    _backgroundFetchQueue = [NSOperationQueue new];
+    [_backgroundFetchQueue setMaxConcurrentOperationCount:6];
+    if ([_backgroundFetchQueue respondsToSelector:@selector(setQualityOfService:)])
+    {
+        [_backgroundFetchQueue setQualityOfService:NSQualityOfServiceUtility];
+    }
+    
+    NSUInteger totalTiles = [self tileCountForSouthWest:southWest northEast:northEast minZoom:minZoom maxZoom:maxZoom];
+    
+    NSUInteger minCacheZoom = minZoom;
+    NSUInteger maxCacheZoom = maxZoom;
+    
+    CLLocationDegrees minCacheLat = southWest.latitude;
+    CLLocationDegrees maxCacheLat = northEast.latitude;
+    CLLocationDegrees minCacheLon = southWest.longitude;
+    CLLocationDegrees maxCacheLon = northEast.longitude;
+    
     if ([_backgroundCacheDelegate respondsToSelector:@selector(tileCache:didBeginBackgroundCacheWithCount:forTileSource:)])
-        [_backgroundCacheDelegate tileCache:self didBeginBackgroundCacheWithCount:totalTiles forTileSource:_activeTileSource];
-
-    __block int progTile = 0;
-
-    for (int zoom = minCacheZoom; zoom <= maxCacheZoom; zoom++)
+    {
+        [_backgroundCacheDelegate tileCache:self
+           didBeginBackgroundCacheWithCount:totalTiles
+                              forTileSource:_activeTileSource];
+    }
+    
+    NSUInteger n, xMin, yMax, xMax, yMin;
+    
+    __block NSUInteger progTile = 0;
+    
+    for (NSUInteger zoom = minCacheZoom; zoom <= maxCacheZoom; zoom++)
     {
         n = pow(2.0, zoom);
         xMin = floor(((minCacheLon + 180.0) / 360.0) * n);
         yMax = floor((1.0 - (logf(tanf(minCacheLat * M_PI / 180.0) + 1.0 / cosf(minCacheLat * M_PI / 180.0)) / M_PI)) / 2.0 * n);
         xMax = floor(((maxCacheLon + 180.0) / 360.0) * n);
         yMin = floor((1.0 - (logf(tanf(maxCacheLat * M_PI / 180.0) + 1.0 / cosf(maxCacheLat * M_PI / 180.0)) / M_PI)) / 2.0 * n);
-
-        for (int x = xMin; x <= xMax; x++)
+        
+        for (NSUInteger x = xMin; x <= xMax; x++)
         {
-            for (int y = yMin; y <= yMax; y++)
+            for (NSUInteger y = yMin; y <= yMax; y++)
             {
-                RMTileCacheDownloadOperation *operation = [[RMTileCacheDownloadOperation alloc] initWithTile:RMTileMake(x, y, zoom)
-                                                                                                forTileSource:_activeTileSource
-                                                                                                   usingCache:self];
-
-                __block RMTileCacheDownloadOperation *internalOperation = operation;
-
-                [operation setCompletionBlock:^(void)
-                {
-                    dispatch_sync(dispatch_get_main_queue(), ^(void)
-                    {
-                        if ( ! [internalOperation isCancelled])
-                        {
-                            progTile++;
-
-                            if ([_backgroundCacheDelegate respondsToSelector:@selector(tileCache:didBackgroundCacheTile:withIndex:ofTotalTileCount:)])
-                                [_backgroundCacheDelegate tileCache:self didBackgroundCacheTile:RMTileMake(x, y, zoom) withIndex:progTile ofTotalTileCount:totalTiles];
-
-                            if (progTile == totalTiles)
-                            {
-                                 _backgroundFetchQueue = nil;
-
-                                 _activeTileSource = nil;
-
-                                if ([_backgroundCacheDelegate respondsToSelector:@selector(tileCacheDidFinishBackgroundCache:)])
-                                    [_backgroundCacheDelegate tileCacheDidFinishBackgroundCache:self];
-                            }
+                __weak RMTileCache *weakSelf = self;
+                
+                void(^completion)(NSError *) = ^(NSError *downloadError) {
+                    // Completion block executed on main queue, so the counter increment
+                    // and comparisons are safe.
+                    if (downloadError) {
+                        progTile++;
+                        
+                        if ([weakSelf.backgroundCacheDelegate respondsToSelector:@selector(tileCache:didReceiveError:whenCachingTile:)]) {
+                            [weakSelf.backgroundCacheDelegate tileCache:weakSelf
+                                                        didReceiveError:downloadError
+                                                        whenCachingTile:RMTileMake((uint32_t)x, (uint32_t)y, zoom)];
                         }
-
-                        internalOperation = nil;
-                    });
-                }];
-
+                    }
+                    else {
+                        progTile++;
+                        
+                        if ([weakSelf.backgroundCacheDelegate respondsToSelector:@selector(tileCache:didBackgroundCacheTile:withIndex:ofTotalTileCount:)]) {
+                            [weakSelf.backgroundCacheDelegate tileCache:weakSelf
+                                                 didBackgroundCacheTile:RMTileMake((uint32_t)x, (uint32_t)y, zoom)
+                                                              withIndex:progTile
+                                                       ofTotalTileCount:totalTiles];
+                        }
+                    }
+                    
+                    // Safe because completion block is executed on main thread.
+                    if (progTile == totalTiles) {
+                        [weakSelf markCachingComplete];
+                        
+                        if ([weakSelf.backgroundCacheDelegate respondsToSelector:@selector(tileCacheDidFinishBackgroundCache:)]) {
+                            [weakSelf.backgroundCacheDelegate tileCacheDidFinishBackgroundCache:weakSelf];
+                        }
+                    }
+                };
+                
+                RMTileCacheDownloadOperation *operation = [[RMTileCacheDownloadOperation alloc] initWithTile:RMTileMake((uint32_t)x, (uint32_t)y, zoom)
+                                                                                               forTileSource:_activeTileSource
+                                                                                                  usingCache:self
+                                                                                                  completion:completion];
                 [_backgroundFetchQueue addOperation:operation];
             }
         }
-    };
+    }
 }
 
 - (void)cancelBackgroundCache

@@ -312,7 +312,7 @@
 
     [self setDecelerationMode:RMMapDecelerationFast];
 
-    self.showLogoBug = YES;
+    self.showLogoBug = NO;
 
     if (RMPostVersion7)
     {
@@ -594,15 +594,15 @@
                 views = @{ @"attributionButton" : _attributionButton };
             }
 
-            [viewController.view addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:formatString
-                                                                                        options:0
-                                                                                        metrics:@{ @"bottomSpacing" : @(bottomSpacing) }
-                                                                                          views:views]];
-
-            [viewController.view addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:[attributionButton]-rightSpacing-|"
-                                                                                        options:0
-                                                                                        metrics:@{ @"rightSpacing" : @(rightSpacing) }
-                                                                                          views:views]];
+//            [viewController.view addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:formatString
+//                                                                                        options:0
+//                                                                                        metrics:@{ @"bottomSpacing" : @(bottomSpacing) }
+//                                                                                          views:views]];
+//
+//            [viewController.view addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:[attributionButton]-rightSpacing-|"
+//                                                                                        options:0
+//                                                                                        metrics:@{ @"rightSpacing" : @(rightSpacing) }
+//                                                                                          views:views]];
         }
     }
 
@@ -1377,6 +1377,11 @@
     [self correctPositionOfAllAnnotations];
 }
 
+- (CGRect)visibleRect
+{
+    return [_mapScrollView convertRect:_mapScrollView.bounds toView:_tiledLayersSuperview];
+}
+
 - (UIView *)viewForZoomingInScrollView:(UIScrollView *)scrollView
 {
     return _tiledLayersSuperview;
@@ -1604,7 +1609,6 @@
             [_currentCallout presentCalloutFromRect:_currentAnnotation.layer.bounds
                                             inLayer:_currentAnnotation.layer
                                  constrainedToLayer:self.layer
-                           permittedArrowDirections:SMCalloutArrowDirectionDown
                                            animated:NO];
 
             _currentCallout.delegate = self;
@@ -1902,9 +1906,6 @@
         {
             _currentCallout = [SMCalloutView new];
 
-            if (RMPreVersion7)
-                _currentCallout.backgroundView = [SMCalloutBackgroundView systemBackgroundView];
-
             if (RMPostVersion7)
                 _currentCallout.tintColor = self.tintColor;
 
@@ -1934,7 +1935,6 @@
             [_currentCallout presentCalloutFromRect:anAnnotation.layer.bounds
                                             inLayer:anAnnotation.layer
                                  constrainedToLayer:self.layer
-                           permittedArrowDirections:SMCalloutArrowDirectionDown
                                            animated:animated];
         }
 
@@ -2321,7 +2321,7 @@
     {
         if (tiledLayerView.tileSource == tileSource)
         {
-//            tiledLayerView.layer.contents = nil;
+            tiledLayerView.layer.contents = nil;
             [tiledLayerView setNeedsDisplay];
             break;
         }
@@ -3780,7 +3780,7 @@
                                               self.bounds.size.height - 30,
                                               _attributionButton.bounds.size.width,
                                               _attributionButton.bounds.size.height);
-        [self addSubview:_attributionButton];
+//        [self addSubview:_attributionButton];
     }
     else if ( ! _viewControllerPresentingAttribution && _attributionButton)
     {

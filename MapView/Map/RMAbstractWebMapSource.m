@@ -36,11 +36,12 @@
 #define HTTP_404_NOT_FOUND 404
 
 static inline BOOL IsEmptyTileData(NSData *data) {
-    if ([data length] == 1784) { // 256x256 tile with all transparent pixels
-        return YES;
-    }
-    
-    return NO;
+//    if ([data length] == 1784) { // 256x256 tile with all transparent pixels
+//        return YES;
+//    }
+//    
+//    return NO;
+    return NO;  
 }
 
 static NSString * KeyForTile(RMTile tile) {

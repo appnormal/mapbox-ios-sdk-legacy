@@ -41,8 +41,8 @@ static NSString * KeyForTile(RMTile tile) {
 static RMTile TileFromKey(NSString *key) {
     NSArray *components = [key componentsSeparatedByString:@"|"];
     short zoom = [components[0] integerValue];
-    uint32_t x = [components[1] integerValue];
-    uint32_t y = [components[2] integerValue];
+    uint32_t x = (uint32_t)[components[1] unsignedIntegerValue];
+    uint32_t y = (uint32_t)[components[2] unsignedIntegerValue];
     return RMTileMake(x, y, zoom);
 }
 

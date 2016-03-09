@@ -296,9 +296,7 @@
 }
 
 - (void)beginBackgroundCacheForTileSource:(id <RMTileSource>)tileSource southWest:(CLLocationCoordinate2D)southWest northEast:(CLLocationCoordinate2D)northEast minZoom:(NSUInteger)minZoom maxZoom:(NSUInteger)maxZoom
-{
-    return; // TODO
-    
+{    
     if (self.isBackgroundCaching)
         return;
     

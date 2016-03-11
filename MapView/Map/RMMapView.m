@@ -268,7 +268,7 @@
 
     _screenScale = [UIScreen mainScreen].scale;
 
-    _adjustTilesForRetinaDisplay = NO;
+    _adjustTilesForRetinaDisplay = YES;
     _missingTilesDepth = 1;
     _debugTiles = NO;
 
@@ -3213,6 +3213,22 @@
 #pragma mark -
 #pragma mark User Location
 
+- (void)setUpLocationManager
+{
+    _locationManager = [CLLocationManager new];
+    _locationManager.headingFilter = 5.0;
+    _locationManager.delegate = self;
+
+    if ([_locationManager respondsToSelector:@selector(requestWhenInUseAuthorization)]) {
+        NSLog(@"REQUESTING PERMISSION");
+        [_locationManager requestWhenInUseAuthorization];
+    }
+    else {
+        NSLog(@"UPDATING LOCATION");
+        [_locationManager startUpdatingLocation];
+    }
+}
+
 - (void)setShowsUserLocation:(BOOL)newShowsUserLocation
 {
     if (newShowsUserLocation == _showsUserLocation)
@@ -3227,10 +3243,7 @@
 
         self.userLocation = [RMUserLocation annotationWithMapView:self coordinate:CLLocationCoordinate2DMake(MAXFLOAT, MAXFLOAT) andTitle:nil];
 
-        _locationManager = [CLLocationManager new];
-        _locationManager.headingFilter = 5.0;
-        _locationManager.delegate = self;
-        [_locationManager startUpdatingLocation];
+        [self setUpLocationManager];
     }
     else
     {
@@ -3641,10 +3654,14 @@
 
 - (void)locationManager:(CLLocationManager *)manager didChangeAuthorizationStatus:(CLAuthorizationStatus)status
 {
-    if (status == kCLAuthorizationStatusDenied || status == kCLAuthorizationStatusRestricted)
-    {
+    if (status == kCLAuthorizationStatusDenied || status == kCLAuthorizationStatusRestricted) {
         self.userTrackingMode  = RMUserTrackingModeNone;
         self.showsUserLocation = NO;
+        self.userTrackingMode  = RMUserTrackingModeNone;
+        self.showsUserLocation = NO;
+    } else if (status == kCLAuthorizationStatusAuthorizedWhenInUse || status == kCLAuthorizationStatusAuthorized) {
+        NSLog(@"Location permission changed - enabled");
+        [manager startUpdatingLocation];
     }
 }
 

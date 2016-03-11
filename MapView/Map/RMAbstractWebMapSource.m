@@ -109,7 +109,7 @@ static RMTile TileFromKey(NSString *key) {
     @synchronized(_initiatedTasks) {
         for (NSString *key in _initiatedTasks.keyEnumerator.allObjects) {
             NSURLSessionTask *task = [_initiatedTasks objectForKey:key];
-            if (task.state == NSURLSessionTaskStateCanceling) {
+            if (task == NULL || task.state == NSURLSessionTaskStateCanceling) {
                 continue;
             }
             

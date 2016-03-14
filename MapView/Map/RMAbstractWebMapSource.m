@@ -138,7 +138,7 @@ static RMTile TileFromKey(NSString *key) {
         return;
     }
     
-    [self cancelDownloadsIrrelevantToTile:tile visibleMapRect:mapRect];
+//    [self cancelDownloadsIrrelevantToTile:tile visibleMapRect:mapRect];
     
     dispatch_async(dispatch_get_main_queue(), ^{
         [[NSNotificationCenter defaultCenter] postNotificationName:RMTileRequested object:[NSNumber numberWithUnsignedLongLong:RMTileKey(tile)]];

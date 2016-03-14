@@ -596,7 +596,7 @@
 @implementation RMQuadTree
 {
     RMQuadTreeNode *_rootNode;
-    RMMapView *_mapView;
+    __weak RMMapView *_mapView;
 }
 
 - (id)initWithMapView:(RMMapView *)aMapView

@@ -30,6 +30,7 @@
 #import "RMTile.h"
 #import "RMFoundation.h"
 #import "RMGlobalConstants.h"
+#import <UIKit/UIKit.h>
 
 #define RMTileRequested @"RMTileRequested"
 #define RMTileRetrieved @"RMTileRetrieved"

@@ -507,34 +507,34 @@
 
     // compass
     //
-    if (RMPostVersion7 && _compassButton)
-    {
-        // The compass view has an intermediary container superview due to
-        // jitter caused by constraint math updates during its rotation
-        // transforms. Constraints are against this container instead so
-        // that the compass can rotate smootly within.
-        //
-        UIView *container = _compassButton.superview;
-
-        if ( ! [[viewController.view valueForKeyPath:@"constraints.firstItem"]  containsObject:container] &&
-             ! [[viewController.view valueForKeyPath:@"constraints.secondItem"] containsObject:container])
-        {
-            CGFloat topSpacing   = container.frame.origin.y;
-            CGFloat rightSpacing = container.superview.bounds.size.width - container.frame.origin.x;
-
-            [viewController.view addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:[topLayoutGuide]-topSpacing-[container]"
-                                                                                        options:0
-                                                                                        metrics:@{ @"topSpacing" : @(topSpacing) }
-                                                                                          views:@{ @"topLayoutGuide" : viewController.topLayoutGuide,
-                                                                                                   @"container"      : container }]];
-
-
-            [viewController.view addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:[container]-rightSpacing-|"
-                                                                                        options:0
-                                                                                        metrics:@{ @"rightSpacing" : @(rightSpacing) }
-                                                                                          views:@{ @"container" : container }]];
-        }
-    }
+//    if (RMPostVersion7 && _compassButton)
+//    {
+//        // The compass view has an intermediary container superview due to
+//        // jitter caused by constraint math updates during its rotation
+//        // transforms. Constraints are against this container instead so
+//        // that the compass can rotate smootly within.
+//        //
+//        UIView *container = _compassButton.superview;
+//
+//        if ( ! [[viewController.view valueForKeyPath:@"constraints.firstItem"]  containsObject:container] &&
+//             ! [[viewController.view valueForKeyPath:@"constraints.secondItem"] containsObject:container])
+//        {
+//            CGFloat topSpacing   = container.frame.origin.y;
+//            CGFloat rightSpacing = container.superview.bounds.size.width - container.frame.origin.x;
+//
+//            [viewController.view addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:[topLayoutGuide]-topSpacing-[container]"
+//                                                                                        options:0
+//                                                                                        metrics:@{ @"topSpacing" : @(topSpacing) }
+//                                                                                          views:@{ @"topLayoutGuide" : viewController.topLayoutGuide,
+//                                                                                                   @"container"      : container }]];
+//
+//
+//            [viewController.view addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:[container]-rightSpacing-|"
+//                                                                                        options:0
+//                                                                                        metrics:@{ @"rightSpacing" : @(rightSpacing) }
+//                                                                                          views:@{ @"container" : container }]];
+//        }
+//    }
 
     if (_logoBug)
     {

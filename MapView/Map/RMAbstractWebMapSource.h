@@ -27,6 +27,7 @@
 
 #import "RMAbstractMercatorTileSource.h"
 #import "RMProjection.h"
+#import <UIKit/UIKit.h>
 
 #define RMAbstractWebMapSourceDefaultRetryCount  3
 #define RMAbstractWebMapSourceDefaultWaitSeconds 15.0

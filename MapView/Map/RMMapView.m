@@ -54,6 +54,7 @@
 #import "RMAttributionViewController.h"
 
 #import "SMCalloutView.h"
+#import <objc/runtime.h>
 
 #pragma mark --- begin constants ----
 
@@ -70,6 +71,26 @@
 #define kRMAccuracyCircleAnnotationTypeName @"RMAccuracyCircleAnnotation"
 
 #pragma mark --- end constants ----
+
+@interface RMAnnotation (ALOAdditions)
+
+@property (nonatomic, retain) RMMapLayer *alo_layer;
+
+@end
+
+@implementation RMAnnotation (ALOAdditions)
+
+- (void)setAlo_layer:(RMMapLayer *)alo_layer
+{
+    objc_setAssociatedObject(self, @selector(alo_layer), alo_layer, OBJC_ASSOCIATION_RETAIN_NONATOMIC);
+}
+
+- (RMMapLayer *)alo_layer
+{
+    return objc_getAssociatedObject(self, @selector(alo_layer));
+}
+
+@end
 
 @interface RMMapView (PrivateMethods) <UIScrollViewDelegate,
                                        UIGestureRecognizerDelegate,
@@ -2946,6 +2967,10 @@
 
         for (RMAnnotation *annotation in annotationsToCorrect)
         {
+            if (annotation.layer == nil && annotation.alo_layer != nil) {
+                annotation.layer = annotation.alo_layer;
+            }
+            
             if (annotation.layer == nil && _delegateHasLayerForAnnotation)
                 annotation.layer = [_delegate mapView:self layerForAnnotation:annotation];
 
@@ -2974,6 +2999,7 @@
                 if (_delegateHasWillHideLayerForAnnotation)
                     [_delegate mapView:self willHideLayerForAnnotation:annotation];
 
+                annotation.alo_layer = annotation.layer;
                 annotation.layer = nil;
 
                 if (_delegateHasDidHideLayerForAnnotation)

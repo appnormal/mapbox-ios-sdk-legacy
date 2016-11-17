@@ -42,7 +42,7 @@
 @implementation RMMapTiledLayerView
 {
     __weak RMMapView *_mapView;
-    id <RMTileSource> _tileSource;
+    __weak id <RMTileSource> _tileSource;
 }
 
 @synthesize useSnapshotRenderer = _useSnapshotRenderer;

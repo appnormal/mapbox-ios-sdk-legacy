@@ -63,13 +63,20 @@
 - (void)updateEllipsePathAnimated:(BOOL)animated
 {
     NSDictionary *radii = _geometry[@"radii"];
-    CGFloat widthInMeters = [radii[@"x"] floatValue];
-    CGFloat width = widthInMeters / [_mapView metersPerPixel];
-    CGFloat heightInMeters = [radii[@"y"] floatValue];
-    CGFloat height = heightInMeters / [_mapView metersPerPixel];
     
-    self.bounds = (CGRect) {
-        self.position,
+    CGFloat radiusX = [radii[@"x"] floatValue];
+    CGFloat latRadians = [[_mapView projection] projectedPointToCoordinate:projectedLocation].latitude * M_PI / 180.0f;
+    CGFloat pixelRadiusX = radiusX / cos(latRadians) / [_mapView metersPerPixel];
+    CGFloat width = pixelRadiusX * 3.2808399;
+    
+    CGFloat radiusY = [radii[@"y"] floatValue];
+    CGFloat lngRadians = [[_mapView projection] projectedPointToCoordinate:projectedLocation].longitude * M_PI / 180.0f;
+    CGFloat pixelRadiusY = radiusY / cos(lngRadians) / [_mapView metersPerPixel];
+    CGFloat height = pixelRadiusY * 3.2808399;
+    
+    CGRect bounds = (CGRect) {
+        self.position.x - width / 2.0f,
+        self.position.y - height / 2.0f,
         width,
         height
     };
@@ -77,10 +84,10 @@
     CGMutablePathRef path = CGPathCreateMutable();
     
     CGAffineTransform transform = CGAffineTransformIdentity;
-    transform = CGAffineTransformTranslate(transform, CGRectGetMidX(self.bounds), CGRectGetMidY(self.bounds));
+    transform = CGAffineTransformTranslate(transform, CGRectGetMidX(bounds), CGRectGetMidY(bounds));
     transform = CGAffineTransformRotate(transform, DEGREES_TO_RADIANS([_geometry[@"tilt"] floatValue]));
-    transform = CGAffineTransformTranslate(transform, -CGRectGetMidX(self.bounds), -CGRectGetMidY(self.bounds));
-    CGPathAddEllipseInRect(path, &transform, self.bounds);
+    transform = CGAffineTransformTranslate(transform, -CGRectGetMidX(bounds), -CGRectGetMidY(bounds));
+    CGPathAddEllipseInRect(path, &transform, bounds);
     
     if (animated) {
         CABasicAnimation *pathAnimation = [CABasicAnimation animationWithKeyPath:@"path"];
@@ -93,6 +100,8 @@
     _shapeLayer.path = path;
     
     CGPathRelease(path);
+    
+    self.bounds = CGPathGetBoundingBox(_shapeLayer.path);
 }
 
 @end

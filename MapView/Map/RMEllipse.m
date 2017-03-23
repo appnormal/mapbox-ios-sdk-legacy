@@ -96,6 +96,7 @@
     }
     
     _shapeLayer.path = path;
+    self.bounds = CGPathGetBoundingBox(_shapeLayer.path);
     CGPathRelease(path);
     
     CGFloat x = CGRectGetMinX(self.frame);

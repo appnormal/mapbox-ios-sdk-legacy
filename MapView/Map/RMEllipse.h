@@ -8,10 +8,12 @@
 
 #import "RMMapLayer.h"
 
+@class RMEllipseAnnotation;
+
 @interface RMEllipse : RMMapLayer
 
 @property (strong, nonatomic) UIColor *color;
 
-- (instancetype)initWithView:(RMMapView *)aMapView geometry:(NSDictionary *)geometry;
+- (instancetype)initWithView:(RMMapView *)aMapView annotation:(RMEllipseAnnotation *)annotation geometry:(NSDictionary *)geometry;
 
 @end

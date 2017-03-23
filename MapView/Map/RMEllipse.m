@@ -8,7 +8,11 @@
 
 #import "RMEllipse.h"
 
+#import "RMAnnotation.h"
+#import "RMGlobalConstants.h"
+#import "RMEllipseAnnotation.h"
 #import "RMMapView.h"
+#import "RMMarker.h"
 
 #define DEGREES_TO_RADIANS(degrees)((M_PI * degrees) / 180.0f)
 
@@ -21,13 +25,15 @@
 
 #pragma mark - Lifecycle
 
-- (instancetype)initWithView:(RMMapView *)aMapView geometry:(NSDictionary *)geometry
+- (instancetype)initWithView:(RMMapView *)aMapView annotation:(RMEllipseAnnotation *)annotation geometry:(NSDictionary *)geometry
 {
     self = [super init];
     if (self) {
+        self.affineTransform = CGAffineTransformMakeRotation(DEGREES_TO_RADIANS([geometry[@"tilt"] floatValue]));
         self.masksToBounds = NO;
         
         _mapView = aMapView;
+        self.annotation = annotation;
         _geometry = [geometry copy];
         
         _shapeLayer = [CAShapeLayer new];
@@ -65,29 +71,21 @@
     NSDictionary *radii = _geometry[@"radii"];
     
     CGFloat radiusX = [radii[@"x"] floatValue];
-    CGFloat latRadians = [[_mapView projection] projectedPointToCoordinate:projectedLocation].latitude * M_PI / 180.0f;
-    CGFloat pixelRadiusX = radiusX / cos(latRadians) / [_mapView metersPerPixel];
+    CGFloat pixelRadiusX = radiusX / [_mapView metersPerPixel];
     CGFloat width = pixelRadiusX * 3.2808399;
     
     CGFloat radiusY = [radii[@"y"] floatValue];
-    CGFloat lngRadians = [[_mapView projection] projectedPointToCoordinate:projectedLocation].longitude * M_PI / 180.0f;
-    CGFloat pixelRadiusY = radiusY / cos(lngRadians) / [_mapView metersPerPixel];
+    CGFloat pixelRadiusY = radiusY / [_mapView metersPerPixel];
     CGFloat height = pixelRadiusY * 3.2808399;
     
     CGRect bounds = (CGRect) {
-        self.position.x - width / 2.0f,
-        self.position.y - height / 2.0f,
+        CGPointZero,
         width,
         height
     };
     
     CGMutablePathRef path = CGPathCreateMutable();
-    
-    CGAffineTransform transform = CGAffineTransformIdentity;
-    transform = CGAffineTransformTranslate(transform, CGRectGetMidX(bounds), CGRectGetMidY(bounds));
-    transform = CGAffineTransformRotate(transform, DEGREES_TO_RADIANS([_geometry[@"tilt"] floatValue]));
-    transform = CGAffineTransformTranslate(transform, -CGRectGetMidX(bounds), -CGRectGetMidY(bounds));
-    CGPathAddEllipseInRect(path, &transform, bounds);
+    CGPathAddEllipseInRect(path, nil, bounds);
     
     if (animated) {
         CABasicAnimation *pathAnimation = [CABasicAnimation animationWithKeyPath:@"path"];
@@ -98,10 +96,26 @@
     }
     
     _shapeLayer.path = path;
-    
     CGPathRelease(path);
     
-    self.bounds = CGPathGetBoundingBox(_shapeLayer.path);
+    CGFloat x = CGRectGetMinX(self.frame);
+    CGFloat y = CGRectGetMinY(self.frame);
+    width = CGRectGetWidth(self.frame);
+    height = CGRectGetHeight(self.frame);
+    
+    CLLocationCoordinate2D coordinate1 = [_mapView pixelToCoordinate:CGPointMake(x, y)];
+    CLLocation *location1 = [[CLLocation alloc] initWithLatitude:coordinate1.latitude longitude:coordinate1.longitude];
+    
+    CLLocationCoordinate2D coordinate2 = [_mapView pixelToCoordinate:CGPointMake(x + width, y)];
+    CLLocation *location2 = [[CLLocation alloc] initWithLatitude:coordinate2.latitude longitude:coordinate2.longitude];
+    
+    CLLocationCoordinate2D coordinate3 = [_mapView pixelToCoordinate:CGPointMake(x + width, y + height)];
+    CLLocation *location3 = [[CLLocation alloc] initWithLatitude:coordinate3.latitude longitude:coordinate3.longitude];
+    
+    CLLocationCoordinate2D coordinate4 = [_mapView pixelToCoordinate:CGPointMake(x, y + height)];
+    CLLocation *location4 = [[CLLocation alloc] initWithLatitude:coordinate4.latitude longitude:coordinate4.longitude];
+    
+    [self.annotation setBoundingBoxFromLocations:@[location1, location2, location3, location4]];
 }
 
 @end

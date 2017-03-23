@@ -42,7 +42,7 @@
 - (RMMapLayer *)layer
 {
     if (super.layer == nil) {
-        RMEllipse *ellipse = [[RMEllipse alloc] initWithView:self.mapView geometry:_geometry];
+        RMEllipse *ellipse = [[RMEllipse alloc] initWithView:self.mapView annotation:self geometry:_geometry];
         ellipse.color = _color;
         super.layer = ellipse;
     }

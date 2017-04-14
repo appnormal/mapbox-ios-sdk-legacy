@@ -10,8 +10,15 @@
 
 @interface RMEllipseAnnotation : RMShapeAnnotation
 
-@property (strong, nonatomic) UIColor *color;
+@property (nonatomic, strong) UIColor *fillColor;
+@property (nonatomic, strong) UIColor *strokeColor;
+@property (nonatomic, assign) CGFloat lineWidth;
+@property (nonatomic, assign) CGFloat tilt;
 
-- (instancetype)initWithMapView:(RMMapView *)aMapView geometry:(NSDictionary *)geometry;
+@property (nonatomic, assign) CGFloat widthInMeters;
+@property (nonatomic, assign) CGFloat heightInMeters;
+
+- (instancetype)initWithMapView:(RMMapView *)aMapView
+                         center:(CLLocationCoordinate2D)center;
 
 @end

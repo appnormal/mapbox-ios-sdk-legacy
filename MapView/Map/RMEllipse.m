@@ -16,29 +16,26 @@
 
 #define DEGREES_TO_RADIANS(degrees)((M_PI * degrees) / 180.0f)
 
-@implementation RMEllipse
-{
+@implementation RMEllipse {
     __weak RMMapView *_mapView;
-    NSDictionary *_geometry;
     CAShapeLayer *_shapeLayer;
 }
 
 #pragma mark - Lifecycle
 
-- (instancetype)initWithView:(RMMapView *)aMapView annotation:(RMEllipseAnnotation *)annotation geometry:(NSDictionary *)geometry
+- (instancetype)initWithView:(RMMapView *)aMapView
 {
-    self = [super init];
-    if (self) {
-        self.affineTransform = CGAffineTransformMakeRotation(DEGREES_TO_RADIANS([geometry[@"tilt"] floatValue]));
+    if (self = [super init]) {
         self.masksToBounds = NO;
         
         _mapView = aMapView;
-        self.annotation = annotation;
-        _geometry = [geometry copy];
         
         _shapeLayer = [CAShapeLayer new];
-        _shapeLayer.lineWidth = [_geometry[@"options"][@"stroke"] floatValue];
         [self addSublayer:_shapeLayer];
+        
+        self.lineWidth = 2.0f;
+        self.strokeColor = [UIColor blackColor];
+        self.fillColor = [UIColor clearColor];
         
         [self updateEllipsePathAnimated:NO];
     }
@@ -47,13 +44,29 @@
 
 #pragma mark - Setters
 
-@dynamic color;
+@dynamic lineWidth, strokeColor, fillColor, tilt;
 
-- (void)setColor:(UIColor *)color
+- (void)setTilt:(CGFloat)tilt
 {
-    NSDictionary *options = _geometry[@"options"];
-    _shapeLayer.fillColor = [color colorWithAlphaComponent:[options[@"fillOpacity"] floatValue]].CGColor;
-    _shapeLayer.strokeColor = [color colorWithAlphaComponent:[options[@"opacity"] floatValue]].CGColor;
+    self.affineTransform = CGAffineTransformRotate(CGAffineTransformIdentity, DEGREES_TO_RADIANS(tilt));
+}
+
+- (void)setStrokeColor:(UIColor *)strokeColor
+{
+    _shapeLayer.strokeColor = strokeColor.CGColor;
+    [self updateEllipsePathAnimated:NO];
+}
+
+- (void)setFillColor:(UIColor *)fillColor
+{
+    _shapeLayer.fillColor = fillColor.CGColor;
+    [self updateEllipsePathAnimated:NO];
+}
+
+- (void)setLineWidth:(CGFloat)lineWidth
+{
+    _shapeLayer.lineWidth = lineWidth;
+    [self updateEllipsePathAnimated:NO];
 }
 
 #pragma mark - Overrides
@@ -68,24 +81,16 @@
 
 - (void)updateEllipsePathAnimated:(BOOL)animated
 {
-    NSDictionary *radii = _geometry[@"radii"];
+    CGFloat width = self.widthInMeters / [_mapView metersPerPixel];
+    CGFloat height = self.heightInMeters / [_mapView metersPerPixel];
     
-    CGFloat radiusX = [radii[@"x"] floatValue];
-    CGFloat pixelRadiusX = radiusX / [_mapView metersPerPixel];
-    CGFloat width = pixelRadiusX * 3.2808399;
-    
-    CGFloat radiusY = [radii[@"y"] floatValue];
-    CGFloat pixelRadiusY = radiusY / [_mapView metersPerPixel];
-    CGFloat height = pixelRadiusY * 3.2808399;
-    
-    CGRect bounds = (CGRect) {
-        CGPointZero,
-        width,
-        height
-    };
+    CGRect shapeBounds = CGRectMake(0, 0, width, height);
+    CGRect bounds = self.bounds;
+    bounds.size.width = width;
+    bounds.size.height = height;
     
     CGMutablePathRef path = CGPathCreateMutable();
-    CGPathAddEllipseInRect(path, nil, bounds);
+    CGPathAddEllipseInRect(path, nil, shapeBounds);
     
     if (animated) {
         CABasicAnimation *pathAnimation = [CABasicAnimation animationWithKeyPath:@"path"];
@@ -96,27 +101,8 @@
     }
     
     _shapeLayer.path = path;
-    self.bounds = CGPathGetBoundingBox(_shapeLayer.path);
     CGPathRelease(path);
-    
-    CGFloat x = CGRectGetMinX(self.frame);
-    CGFloat y = CGRectGetMinY(self.frame);
-    width = CGRectGetWidth(self.frame);
-    height = CGRectGetHeight(self.frame);
-    
-    CLLocationCoordinate2D coordinate1 = [_mapView pixelToCoordinate:CGPointMake(x, y)];
-    CLLocation *location1 = [[CLLocation alloc] initWithLatitude:coordinate1.latitude longitude:coordinate1.longitude];
-    
-    CLLocationCoordinate2D coordinate2 = [_mapView pixelToCoordinate:CGPointMake(x + width, y)];
-    CLLocation *location2 = [[CLLocation alloc] initWithLatitude:coordinate2.latitude longitude:coordinate2.longitude];
-    
-    CLLocationCoordinate2D coordinate3 = [_mapView pixelToCoordinate:CGPointMake(x + width, y + height)];
-    CLLocation *location3 = [[CLLocation alloc] initWithLatitude:coordinate3.latitude longitude:coordinate3.longitude];
-    
-    CLLocationCoordinate2D coordinate4 = [_mapView pixelToCoordinate:CGPointMake(x, y + height)];
-    CLLocation *location4 = [[CLLocation alloc] initWithLatitude:coordinate4.latitude longitude:coordinate4.longitude];
-    
-    [self.annotation setBoundingBoxFromLocations:@[location1, location2, location3, location4]];
+    self.bounds = bounds;
 }
 
 @end

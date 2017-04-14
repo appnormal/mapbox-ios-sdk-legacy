@@ -11,21 +11,16 @@
 #import "RMEllipse.h"
 
 @implementation RMEllipseAnnotation
-{
-    NSDictionary *_geometry;
-}
+@dynamic fillColor, strokeColor, lineWidth, tilt, widthInMeters, heightInMeters;
 
 #pragma mark - Lifecycle
 
-- (instancetype)initWithMapView:(RMMapView *)aMapView geometry:(NSDictionary *)geometry
+- (instancetype)initWithMapView:(RMMapView *)aMapView
+                         center:(CLLocationCoordinate2D)center
 {
-    NSDictionary *center = geometry[@"center"];
-    CLLocationCoordinate2D centerCoordinate = CLLocationCoordinate2DMake([center[@"lat"] doubleValue], [center[@"lng"] doubleValue]);
-    self = [super initWithMapView:aMapView points:@[[[CLLocation alloc] initWithLatitude:centerCoordinate.latitude longitude:centerCoordinate.longitude]]];
-    if (self) {
-        _geometry = geometry;
-    }
-    return self;
+    CLLocation *location = [[CLLocation alloc] initWithLatitude:center.latitude longitude:center.longitude];
+    
+    return self = [super initWithMapView:aMapView points:@[location]];
 }
 
 #pragma mark - Setters
@@ -37,13 +32,42 @@
     }
 }
 
+- (void)setFillColor:(UIColor *)fillColor
+{
+    [(RMEllipse *)[self layer] setFillColor:fillColor];
+}
+
+- (void)setStrokeColor:(UIColor *)strokeColor
+{
+    [(RMEllipse *)[self layer] setStrokeColor:strokeColor];
+}
+
+- (void)setLineWidth:(CGFloat)lineWidth
+{
+    [(RMEllipse *)[self layer] setLineWidth:lineWidth];
+}
+
+- (void)setTilt:(CGFloat)tilt
+{
+    [(RMEllipse *)[self layer] setTilt:tilt];
+}
+
+- (void)setHeightInMeters:(CGFloat)heightInMeters
+{
+    [(RMEllipse *)[self layer] setHeightInMeters:heightInMeters];
+}
+
+- (void)setWidthInMeters:(CGFloat)widthInMeters
+{
+    [(RMEllipse *)[self layer] setWidthInMeters:widthInMeters];
+}
+
 #pragma mark - Getters
 
 - (RMMapLayer *)layer
 {
     if (super.layer == nil) {
-        RMEllipse *ellipse = [[RMEllipse alloc] initWithView:self.mapView annotation:self geometry:_geometry];
-        ellipse.color = _color;
+        RMEllipse *ellipse = [[RMEllipse alloc] initWithView:self.mapView];
         super.layer = ellipse;
     }
     

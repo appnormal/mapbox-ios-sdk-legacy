@@ -89,12 +89,12 @@
 
 - (CGFloat)pixelWidth
 {
-    return self.widthInMeters / [_mapView metersPerPixel];
+    return fabs(self.widthInMeters) / [_mapView metersPerPixel];
 }
 
 - (CGFloat)pixelHeight
 {
-    return self.heightInMeters / [_mapView metersPerPixel];
+    return fabs(self.heightInMeters) / [_mapView metersPerPixel];
 }
 
 - (void)updateEllipsePathAnimated:(BOOL)animated

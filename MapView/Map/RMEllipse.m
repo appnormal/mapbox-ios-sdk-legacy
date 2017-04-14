@@ -36,7 +36,6 @@
         self.lineWidth = 2.0f;
         self.strokeColor = [UIColor blackColor];
         self.fillColor = [UIColor clearColor];
-        
         [self updateEllipsePathAnimated:NO];
     }
     return self;
@@ -73,22 +72,37 @@
 
 - (void)setPosition:(CGPoint)position animated:(BOOL)animated
 {
-    [self setPosition:position];
+    // The position is the center of the annotation.
+    CGRect frame = CGRectZero;
+    frame.origin.x = position.x - 0.5 * [self pixelWidth];
+    frame.origin.y = position.y - 0.5 * [self pixelHeight];
+    frame.size.width = [self pixelWidth];
+    frame.size.height = [self pixelHeight];
+    self.bounds = frame;
+    _shapeLayer.frame = self.bounds;
+    
+    [super setPosition:position animated:animated];
     [self updateEllipsePathAnimated:animated];
 }
 
 #pragma mark - Draw
 
+- (CGFloat)pixelWidth
+{
+    return self.widthInMeters / [_mapView metersPerPixel];
+}
+
+- (CGFloat)pixelHeight
+{
+    return self.heightInMeters / [_mapView metersPerPixel];
+}
+
 - (void)updateEllipsePathAnimated:(BOOL)animated
 {
-    CGFloat width = self.widthInMeters / [_mapView metersPerPixel];
-    CGFloat height = self.heightInMeters / [_mapView metersPerPixel];
+    CGFloat width = [self pixelWidth];
+    CGFloat height = [self pixelHeight];
     
     CGRect shapeBounds = CGRectMake(0, 0, width, height);
-    CGRect bounds = self.bounds;
-    bounds.size.width = width;
-    bounds.size.height = height;
-    
     CGMutablePathRef path = CGPathCreateMutable();
     CGPathAddEllipseInRect(path, nil, shapeBounds);
     
@@ -102,7 +116,6 @@
     
     _shapeLayer.path = path;
     CGPathRelease(path);
-    self.bounds = bounds;
 }
 
 @end

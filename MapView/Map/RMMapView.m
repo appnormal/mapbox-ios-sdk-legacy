@@ -183,7 +183,6 @@
     BOOL _delegateHasDidChangeUserTrackingMode;
 
     UIView *_backgroundView;
-    RMMapScrollView *_mapScrollView;
     RMMapOverlayView *_overlayView;
     UIView *_tiledLayersSuperview;
     RMLoadingTileView *_loadingTileView;
@@ -1391,7 +1390,7 @@
     UITapGestureRecognizer *twoFingerSingleTapRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleTwoFingerSingleTap:)];
     twoFingerSingleTapRecognizer.numberOfTouchesRequired = 2;
     twoFingerSingleTapRecognizer.delegate = self;
-
+    [twoFingerSingleTapRecognizer requireGestureRecognizerToFail:self.mapScrollView.pinchGestureRecognizer];
     [self addGestureRecognizer:twoFingerSingleTapRecognizer];
 
     [_visibleAnnotations removeAllObjects];
@@ -1874,8 +1873,10 @@
 
 - (BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldReceiveTouch:(UITouch *)touch
 {
-    if ([touch.view isKindOfClass:[UIControl class]])
+    // dont use isKindOfClass: -> this will block UIViews to receive touches
+    if ([touch.view.class isSubclassOfClass:[UIControl class]]) {
         return NO;
+    }
 
     return YES;
 }

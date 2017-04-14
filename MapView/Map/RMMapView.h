@@ -125,6 +125,9 @@ typedef enum : NSUInteger {
 /** A custom, static view to use behind the map tiles. The default behavior is to use grid imagery that moves with map panning like MapKit. */
 @property (nonatomic, strong) UIView *backgroundView;
 
+/** Expose internal map scroll view for customization **/
+@property (nonatomic, strong, readonly) RMMapScrollView *mapScrollView;
+
 /** A custom image to use behind the map tiles. The default behavior is to show the default `backgroundView` and not a static image. 
 *
 *   @param backgroundImage The image to use. */

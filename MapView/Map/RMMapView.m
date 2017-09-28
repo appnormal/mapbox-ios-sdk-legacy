@@ -429,7 +429,7 @@
 
         [self correctPositionOfAllAnnotations];
 
-        self.minZoom = 0; // force new minZoom calculation
+        //self.minZoom = 0; // force new minZoom calculation
 
         if (_loadingTileView)
             _loadingTileView.mapZooming = NO;

@@ -2193,8 +2193,8 @@
 
     [self setTileSourcesConstraintsFromLatitudeLongitudeBoundingBox:[_tileSourcesContainer latitudeLongitudeBoundingBox]];
 
-    [self setTileSourcesMinZoom:_tileSourcesContainer.minZoom];
-    [self setTileSourcesMaxZoom:_tileSourcesContainer.maxZoom];
+//    [self setTileSourcesMinZoom:_tileSourcesContainer.minZoom];
+//    [self setTileSourcesMaxZoom:_tileSourcesContainer.maxZoom];
     [self setZoom:[self zoom]]; // setZoom clamps zoom level to min/max limits
 
     // Recreate the map layer
@@ -2470,7 +2470,6 @@
     _minZoom = newMinZoom;
 
 //    RMLog(@"New minZoom:%f", newMinZoom);
-
     _mapScrollView.minimumZoomScale = exp2f(newMinZoom);
 }
 
@@ -2497,7 +2496,6 @@
     _maxZoom = newMaxZoom;
 
 //    RMLog(@"New maxZoom:%f", newMaxZoom);
-
     _mapScrollView.maximumZoomScale = exp2f(newMaxZoom);
 }
 

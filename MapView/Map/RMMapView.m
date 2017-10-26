@@ -1890,6 +1890,8 @@
 
 - (void)tapOnAnnotation:(RMAnnotation *)anAnnotation atPoint:(CGPoint)aPoint
 {
+    NSLog(@"ANNOTATION: %@", anAnnotation);
+    NSLog(@"CURRENT: %@", _currentAnnotation);
     if (anAnnotation.isEnabled && ! [anAnnotation isEqual:_currentAnnotation])
         [self selectAnnotation:anAnnotation animated:YES];
 
@@ -1931,7 +1933,7 @@
 
         if (anAnnotation.layer.canShowCallout && anAnnotation.title)
         {
-            _currentCallout = [SMCalloutView new];
+            _currentCallout = [SMCalloutView platformCalloutView];
 
             if (RMPostVersion7)
                 _currentCallout.tintColor = self.tintColor;
@@ -1958,6 +1960,7 @@
             }
 
             _currentCallout.delegate = self;
+            _currentCallout.permittedArrowDirection = SMCalloutArrowDirectionDown;
 
             [_currentCallout presentCalloutFromRect:anAnnotation.layer.bounds
                                             inLayer:anAnnotation.layer

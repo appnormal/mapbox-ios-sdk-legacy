@@ -60,10 +60,11 @@
 
 - (void)dealloc
 {
-    dispatch_barrier_sync(_memoryCacheQueue, ^{
-        [_memoryCache removeAllObjects];
-        _memoryCache = nil;
-    });
+    // This shit is not needed and causes a crash.
+//    dispatch_barrier_sync(_memoryCacheQueue, ^{
+//        [_memoryCache removeAllObjects];
+//        _memoryCache = nil;
+//    });
 }
 
 - (void)didReceiveMemoryWarning

@@ -1387,11 +1387,11 @@
     [self addGestureRecognizer:longPressRecognizer];
 
     // two finger taps
-    UITapGestureRecognizer *twoFingerSingleTapRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleTwoFingerSingleTap:)];
-    twoFingerSingleTapRecognizer.numberOfTouchesRequired = 2;
-    twoFingerSingleTapRecognizer.delegate = self;
-    [twoFingerSingleTapRecognizer requireGestureRecognizerToFail:self.mapScrollView.pinchGestureRecognizer];
-    [self addGestureRecognizer:twoFingerSingleTapRecognizer];
+//    UITapGestureRecognizer *twoFingerSingleTapRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleTwoFingerSingleTap:)];
+//    twoFingerSingleTapRecognizer.numberOfTouchesRequired = 2;
+//    twoFingerSingleTapRecognizer.delegate = self;
+//    [twoFingerSingleTapRecognizer requireGestureRecognizerToFail:self.mapScrollView.pinchGestureRecognizer];
+//    [self addGestureRecognizer:twoFingerSingleTapRecognizer];
 
     [_visibleAnnotations removeAllObjects];
     [self correctPositionOfAllAnnotations];

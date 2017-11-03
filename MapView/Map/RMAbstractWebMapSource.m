@@ -79,6 +79,11 @@ static RMTile TileFromKey(NSString *key) {
     return self;
 }
 
+- (void)dealloc
+{
+    [self cancelAllDownloads];
+}
+
 - (void)cancelAllDownloads
 {
     NSArray *tasks = nil;

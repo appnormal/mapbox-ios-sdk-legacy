@@ -2175,6 +2175,36 @@
     [self setCenterProjectedPoint:centerPoint animated:NO];
 }
 
+- (void)updateMinMaxZoom
+{
+    // Update min/max zoom based on min/max zoom of added sources.
+    if (!_tileSourcesContainer.tileSources.count) {
+        self.minZoom = 11.0f; // default values
+        self.maxZoom = 21.0f;
+    } else {
+        CGFloat minZoom = CGFLOAT_MIN;
+        CGFloat maxZoom = CGFLOAT_MAX;
+
+        for (id <RMTileSource> src in _tileSourcesContainer.tileSources) {
+            if ([src minZoom] > 0) {
+                minZoom = MAX(minZoom, [src minZoom]);
+            }
+            if ([src maxZoom] > 0) {
+                maxZoom = MIN(maxZoom, [src maxZoom]);
+            }
+            NSLog(@"MAX ZOOM: %f", [src maxZoom]);
+            NSLog(@"MIN ZOOM: %f", [src minZoom]);
+        }
+
+        self.maxZoom = maxZoom;
+        self.minZoom = minZoom;
+    }
+    NSLog(@"MAX ZOOM FINAL: %f", self.maxZoom);
+    NSLog(@"MIN ZOOM FINAL: %f", self.minZoom);
+
+    [self setZoom:[self zoom]]; // setZoom clamps zoom level to min/max limits
+}
+
 - (void)addTileSource:(id <RMTileSource>)tileSource
 {
     [self addTileSource:tileSource atIndex:-1];
@@ -2198,7 +2228,6 @@
 
 //    [self setTileSourcesMinZoom:_tileSourcesContainer.minZoom];
 //    [self setTileSourcesMaxZoom:_tileSourcesContainer.maxZoom];
-    [self setZoom:[self zoom]]; // setZoom clamps zoom level to min/max limits
 
     // Recreate the map layer
     NSUInteger tileSourcesContainerSize = [[_tileSourcesContainer tileSources] count];
@@ -2223,6 +2252,8 @@
     }
 
     [self setCenterProjectedPoint:centerPoint animated:NO];
+    
+    [self updateMinMaxZoom];
 }
 
 - (void)removeTileSource:(id <RMTileSource>)tileSource
@@ -2251,11 +2282,12 @@
             break;
         }
     }
-
+    
     tileSourceTiledLayerView.layer.contents = nil;
     [tileSourceTiledLayerView removeFromSuperview];  tileSourceTiledLayerView = nil;
 
     [self setCenterProjectedPoint:centerPoint animated:NO];
+    [self updateMinMaxZoom];
 }
 
 - (void)removeTileSourceAtIndex:(NSUInteger)index
@@ -2356,6 +2388,8 @@
             break;
         }
     }
+    
+    [self updateMinMaxZoom];
 }
 
 - (void)reloadTileSourceAtIndex:(NSUInteger)index

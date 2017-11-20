@@ -2182,12 +2182,12 @@
         self.minZoom = 11.0f; // default values
         self.maxZoom = 21.0f;
     } else {
-        CGFloat minZoom = CGFLOAT_MIN;
+        CGFloat minZoom = CGFLOAT_MAX;
         CGFloat maxZoom = CGFLOAT_MAX;
 
         for (id <RMTileSource> src in _tileSourcesContainer.tileSources) {
             if ([src minZoom] > 0) {
-                minZoom = MAX(minZoom, [src minZoom]);
+                minZoom = MIN(minZoom, [src minZoom]);
             }
             if ([src maxZoom] > 0) {
                 maxZoom = MIN(maxZoom, [src maxZoom]);

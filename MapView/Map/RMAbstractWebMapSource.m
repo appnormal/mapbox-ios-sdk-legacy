@@ -144,10 +144,6 @@ static RMTile TileFromKey(NSString *key) {
     }
     
 //    [self cancelDownloadsIrrelevantToTile:tile visibleMapRect:mapRect];
-    
-    dispatch_async(dispatch_get_main_queue(), ^{
-        [[NSNotificationCenter defaultCenter] postNotificationName:RMTileRequested object:[NSNumber numberWithUnsignedLongLong:RMTileKey(tile)]];
-    });
 
     NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[self URLForTile:tile]];
     request.timeoutInterval = [self requestTimeoutSeconds];
@@ -160,8 +156,6 @@ static RMTile TileFromKey(NSString *key) {
             [cache addImage:img forTile:tile withCacheKey:[self uniqueTilecacheKey]];
             
             dispatch_async(dispatch_get_main_queue(), ^{
-               [[NSNotificationCenter defaultCenter] postNotificationName:RMTileRetrieved object:[NSNumber numberWithUnsignedLongLong:RMTileKey(tile)]];
-                
                 if (completion) {
                     completion(img);
                 }

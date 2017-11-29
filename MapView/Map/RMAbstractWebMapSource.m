@@ -153,7 +153,7 @@ static RMTile TileFromKey(NSString *key) {
         NSInteger statusCode = [(NSHTTPURLResponse *)response statusCode];
         if (statusCode == 200 && error == nil && !IsEmptyTileData(data)) {
             UIImage *img = [UIImage imageWithData:data];
-            [cache addImage:img forTile:tile withCacheKey:[self uniqueTilecacheKey]];
+            [cache addImage:img withData:data forTile:tile withCacheKey:[self uniqueTilecacheKey]];
             
             dispatch_async(dispatch_get_main_queue(), ^{
                 if (completion) {

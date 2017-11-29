@@ -309,7 +309,7 @@ static double coordinateGridSpacingDecimal[19] = {
     CGImageRelease(imageRef);
 
     if (image)
-        [tileCache addImage:image forTile:tile withCacheKey:[self uniqueTilecacheKey]];
+        [tileCache addImage:image withData:UIImagePNGRepresentation(image) forTile:tile withCacheKey:[self uniqueTilecacheKey]];
 
 	return image;
 }

@@ -194,6 +194,7 @@
 - (UIImage *)imageForTile:(RMTile)tile inCache:(RMTileCache *)tileCache
 {
     __block UIImage *image = nil;
+    __block NSData *data = nil;
 
 	tile = [[self mercatorToTileProjection] normaliseTile:tile];
 
@@ -216,16 +217,20 @@
         if ([db hadError])
             NSLog(@"DB error %d on line %d: %@", [db lastErrorCode], __LINE__, [db lastErrorMessage]);
 
-        if ([result next])
-            image = [[UIImage alloc] initWithData:[result dataForColumnIndex:0]];
-        else
+        if ([result next]) {
+            data = [result dataForColumnIndex:0];
+            image = [[UIImage alloc] initWithData:data];
+        }
+        else {
             image = [RMTileImage missingTile];
+            data = UIImagePNGRepresentation(image);
+        }
 
         [result close];
     }];
 
     if (image && self.isCacheable)
-        [tileCache addImage:image forTile:tile withCacheKey:[self uniqueTilecacheKey]];
+        [tileCache addImage:image withData:data forTile:tile withCacheKey:[self uniqueTilecacheKey]];
 
 	return image;
 }

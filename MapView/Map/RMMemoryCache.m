@@ -122,7 +122,7 @@
     return _memoryCacheCapacity;
 }
 
-- (void)addImage:(UIImage *)image forTile:(RMTile)tile withCacheKey:(NSString *)aCacheKey
+- (void)addImage:(UIImage *)image withData:(NSData *)data forTile:(RMTile)tile withCacheKey:(NSString *)aCacheKey
 {
 //    RMLog(@"Memory cache insert tile %d %d %d (%@)", tile.x, tile.y, tile.zoom, [RMTileCache tileHash:tile]);
 

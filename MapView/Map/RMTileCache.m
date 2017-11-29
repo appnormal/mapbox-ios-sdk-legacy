@@ -177,7 +177,7 @@
 
             if (image != nil)
             {
-                [_memoryCache addImage:image forTile:tile withCacheKey:aCacheKey];
+                [_memoryCache addImage:image withData:UIImagePNGRepresentation(image) forTile:tile withCacheKey:aCacheKey];
                 break;
             }
         }
@@ -187,19 +187,19 @@
 	return image;
 }
 
-- (void)addImage:(UIImage *)image forTile:(RMTile)tile withCacheKey:(NSString *)aCacheKey
+- (void)addImage:(UIImage *)image withData:(NSData *)data forTile:(RMTile)tile withCacheKey:(NSString *)aCacheKey
 {
     if (!image || !aCacheKey)
         return;
 
-    [_memoryCache addImage:image forTile:tile withCacheKey:aCacheKey];
+    [_memoryCache addImage:image withData:data forTile:tile withCacheKey:aCacheKey];
 
     dispatch_sync(_tileCacheQueue, ^{
 
         for (id <RMTileCache> cache in _tileCaches)
         {	
-            if ([cache respondsToSelector:@selector(addImage:forTile:withCacheKey:)])
-                [cache addImage:image forTile:tile withCacheKey:aCacheKey];
+            if ([cache respondsToSelector:@selector(addImage:withData:forTile:withCacheKey:)])
+                [cache addImage:image withData:data forTile:tile withCacheKey:aCacheKey];
         }
 
     });

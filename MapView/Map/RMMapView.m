@@ -2199,9 +2199,7 @@
         self.maxZoom = maxZoom;
         self.minZoom = minZoom;
     }
-    NSLog(@"MAX ZOOM FINAL: %f", self.maxZoom);
-    NSLog(@"MIN ZOOM FINAL: %f", self.minZoom);
-
+    
     [self setZoom:[self zoom]]; // setZoom clamps zoom level to min/max limits
 }
 

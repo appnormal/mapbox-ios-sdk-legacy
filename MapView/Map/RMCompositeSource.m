@@ -168,7 +168,7 @@
     }
 
     if (image && self.isCacheable)
-        [tileCache addImage:image forTile:tile withCacheKey:[self uniqueTilecacheKey]];
+        [tileCache addImage:image withData:UIImagePNGRepresentation(image) forTile:tile withCacheKey:[self uniqueTilecacheKey]];
 
     dispatch_async(dispatch_get_main_queue(), ^(void)
     {

@@ -86,15 +86,7 @@ static RMTile TileFromKey(NSString *key) {
 
 - (void)cancelAllDownloads
 {
-    NSArray *tasks = nil;
-    
-    @synchronized(_initiatedTasks) {
-        tasks = [_initiatedTasks.objectEnumerator.allObjects copy];
-    }
-    
-    for (NSURLSessionDataTask *task in tasks) {
-        [task cancel];
-    }
+    [_URLSession invalidateAndCancel];
 }
 
 - (BOOL)operationExistsForTile:(RMTile)tile

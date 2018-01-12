@@ -2192,8 +2192,6 @@
             if ([src maxZoom] > 0) {
                 maxZoom = MIN(maxZoom, [src maxZoom]);
             }
-            NSLog(@"MAX ZOOM: %f", [src maxZoom]);
-            NSLog(@"MIN ZOOM: %f", [src minZoom]);
         }
 
         self.maxZoom = maxZoom;

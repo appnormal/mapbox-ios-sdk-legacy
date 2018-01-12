@@ -82,11 +82,20 @@ static RMTile TileFromKey(NSString *key) {
 - (void)dealloc
 {
     [self cancelAllDownloads];
+    [_URLSession invalidateAndCancel];
 }
 
 - (void)cancelAllDownloads
 {
-    [_URLSession invalidateAndCancel];
+    NSArray *tasks = nil;
+    
+    @synchronized(_initiatedTasks) {
+        tasks = [_initiatedTasks.objectEnumerator.allObjects copy];
+    }
+    
+    for (NSURLSessionDataTask *task in tasks) {
+        [task cancel];
+    }
 }
 
 - (BOOL)operationExistsForTile:(RMTile)tile
@@ -136,7 +145,8 @@ static RMTile TileFromKey(NSString *key) {
     }
     
 //    [self cancelDownloadsIrrelevantToTile:tile visibleMapRect:mapRect];
-
+    
+    NSString *tileCacheKey = [self uniqueTilecacheKey];
     NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[self URLForTile:tile]];
     request.timeoutInterval = [self requestTimeoutSeconds];
     [request setValue:[[RMConfiguration configuration] userAgent] forHTTPHeaderField:@"User-Agent"];
@@ -145,7 +155,7 @@ static RMTile TileFromKey(NSString *key) {
         NSInteger statusCode = [(NSHTTPURLResponse *)response statusCode];
         if (statusCode == 200 && error == nil && !IsEmptyTileData(data)) {
             UIImage *img = [UIImage imageWithData:data];
-            [cache addImage:img withData:data forTile:tile withCacheKey:[self uniqueTilecacheKey]];
+            [cache addImage:img withData:data forTile:tile withCacheKey:tileCacheKey];
             
             dispatch_async(dispatch_get_main_queue(), ^{
                 if (completion) {

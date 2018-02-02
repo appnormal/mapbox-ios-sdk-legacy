@@ -147,9 +147,13 @@ static RMTile TileFromKey(NSString *key) {
 //    [self cancelDownloadsIrrelevantToTile:tile visibleMapRect:mapRect];
     
     NSString *tileCacheKey = [self uniqueTilecacheKey];
-    NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[self URLForTile:tile]];
+    NSURL *URL = [self URLForTile:tile];
+    NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:URL];
     request.timeoutInterval = [self requestTimeoutSeconds];
     [request setValue:[[RMConfiguration configuration] userAgent] forHTTPHeaderField:@"User-Agent"];
+    if (self.authenticationHeader != nil) {
+        [request setValue:self.authenticationHeader forHTTPHeaderField:@"Authorization"];
+    }
 
     NSURLSessionDataTask *task = [_URLSession dataTaskWithRequest:request completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
         NSInteger statusCode = [(NSHTTPURLResponse *)response statusCode];
@@ -162,6 +166,8 @@ static RMTile TileFromKey(NSString *key) {
                     completion(img);
                 }
             });
+        } else {
+            NSLog(@"Error for URL: %@: %@", URL, [[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding]);
         }
     }];
     [task resume];
